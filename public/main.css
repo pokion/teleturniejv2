@@ -1,0 +1,17 @@
+@font-face{
+    font-family: happy;
+    src: url(./happy.ttf)
+}
+@font-face{
+    font-family: pixels;
+    src: url(./pixels.ttf)
+}
+@font-face{
+    font-family: main;
+    src: url(./mainFont.ttf)
+}
+:root{
+    --main-color: #703858;
+    --secondary-color: #f89070;
+    --accent-color: #f8e0a0;
+}

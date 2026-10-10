@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teleturniej</title>
+    <link rel="stylesheet" href="./bootstrap.min.css" />
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+        body{
+            background-color: var(--secondary-color);
+            font-family: happy;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            height: 100vh;
+        }
+        .podium{
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .image{
+            height: 90px;
+            width: 90px;
+            border-radius: 100%;
+            border: solid var(--secondary-color) 3px;
+            background-color: black;
+        }
+        .step > .image{
+            position:relative;
+            margin-bottom: -40px;
+            z-index: 222;
+            margin-left: 50%;
+            left: -45px;
+        }
+        .box{
+            width: 200px;
+            background-color: var(--main-color);
+            border: solid var(--accent-color) 3px;
+            border-radius: 11px;
+            padding-top: 50px;
+            text-align: center;
+            height: calc(100% - 50px);
+        }
+        .second{
+            margin-top: 30px;
+        }
+        .third{
+            margin-top: 50px;
+        }
+        .container{
+            padding-top: 40px;
+        }
+        .capsule{
+            background-color: var(--main-color);
+            border: solid var(--accent-color) 3px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            border-radius: 100px;
+            height: 89px;
+            margin-top: 20px;
+        }
+        .capsule > p{
+            margin: 0px;
+        }
+        .capsule > .image{
+            margin-left: -3px;
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <div class="podium">
+            <div class="step second">
+                <div class="image"></div>
+                <div class="box">
+                    <p>Patrycja</p>
+                    <p>2500</p>
+                </div>
+            </div>
+            <div class="step first">
+                <div class="image"></div>
+                <div class="box">
+                    <p>Czarek</p>
+                    <p>2500</p>
+                </div>
+            </div>
+            <div class="step third">
+                <div class="image"></div>
+                <div class="box">
+                    <p>Ania</p>
+                    <p>2500</p>
+                </div>
+            </div>
+        </div>
+
+        <br/>
+
+        <div class="row">
+            <div class="col-4">
+                <div class="capsule">
+                    <div class="image"></div>
+                    <p>Patryk</p>
+                    <p>300</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="capsule">
+                    <div class="image"></div>
+                    <p>Patryk</p>
+                    <p>300</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="capsule">
+                    <div class="image"></div>
+                    <p>Patryk</p>
+                    <p>300</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="capsule">
+                    <div class="image"></div>
+                    <p>Patryk</p>
+                    <p>300</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="capsule">
+                    <div class="image"></div>
+                    <p>Patryk</p>
+                    <p>300</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./bootstrap.min.js"></script>
+</body>
+</html>
