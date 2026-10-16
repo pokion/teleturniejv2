@@ -23,6 +23,15 @@ export default function socketConnection(io, database){
             socket.broadcast.emit('showSection', section);
         })
 
+        socket.on('playMusic', (musicName)=>{
+            console.log(musicName)
+            socket.broadcast.emit('playMusic', musicName)
+        })
+
+        socket.on('stopMusic', ()=>{
+            socket.broadcast.emit('stopMusic')
+        })
+
         socket.on('selectPlayer', (id)=>{
             for(let player of players){
                 if(player.id == id){
@@ -33,6 +42,7 @@ export default function socketConnection(io, database){
         })
 
         socket.on('createPlayer', (args)=>{
+            console.log('args')
             let imageSplit = args.image.split(',');
             let extension = imageSplit[0].split('/')[1].split(';')[0];
             let imageName = crypto.randomBytes(8).toString('hex') + '.' + extension
@@ -67,6 +77,9 @@ export default function socketConnection(io, database){
             socket.broadcast.emit('allPlayers', players);
             socket.emit('allPlayers', players);
             database.savePlayers(players);
+            let raw = database.questionPlayed()
+            socket.broadcast.emit('updateRawData', raw)
+            socket.emit('updateRawData', raw)
         })
     });
 

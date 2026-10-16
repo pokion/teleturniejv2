@@ -61,14 +61,97 @@
         </div>
     </div> 
 
+    <audio src="./music/milionere.m4a" id="milionere"></audio>
+    <audio src="./music/wisniewskiMusic.mp4" id="wisniewskiMusic"></audio>
+    <audio src="./music/menAtWork.mp3" id="menAtWork"></audio>
+    <audio src="./music/katyPerry.mp3" id="HotnCold"></audio>
+    <audio src="./music/hideway.mp3" id="hideway"></audio>
+    <audio src="./music/beautifulGirls.mp3" id="beautifulGirls"></audio>
+    <audio src="./music/dontLooAtMe.mp3" id="dontLooAtMe"></audio>
+    <audio src="./music/makumba.mp3" id="makumba"></audio>
+
+
     <iframe src="http://localhost:8080/board" class="full hide" id="board"></iframe>
     <iframe src="http://localhost:8080/question" class="full hide" id="question"></iframe>
-
+    <button onclick="musicPlay()" id="buttonMusic">play</button>
     <script src="./bootstrap.min.js"></script>
     <script src="./socketIO.min.js"></script>
     <script src="./main.js"></script>
     <script>
         const socket = io();
+        const milionere = document.querySelector('#milionere');
+        const wisniewskiMusic = document.querySelector('#wisniewskiMusic');
+        const menAtWork = document.querySelector('#menAtWork');
+        const HotnCold = document.querySelector('#HotnCold');
+        const hideway = document.querySelector('#hideway');
+        const beautifulGirls = document.querySelector('#beautifulGirls');
+        const dontLooAtMe = document.querySelector('#dontLooAtMe');
+        const makumba = document.querySelector('#makumba');
+
+
+        let currentMusic;
+
+        function musicPlay(){
+            document.querySelector('#buttonMusic').classList.add('hide')
+            milionere.play()
+            milionere.pause()
+        }
+
+        socket.on('updateRawData', (data)=>{
+            populateQuestions(data)
+        })
+
+        socket.on('playMusic', (musicName)=>{
+            if(currentMusic){
+                currentMusic.pause();
+            }
+            if('makumba' == musicName){
+                makumba.currentTime = 0;
+                makumba.play();
+                currentMusic = makumba;
+            }
+            if('dontLooAtMe' == musicName){
+                dontLooAtMe.currentTime = 0;
+                dontLooAtMe.play();
+                currentMusic = dontLooAtMe;
+            }
+            if('beautifulGirls' == musicName){
+                beautifulGirls.currentTime = 0;
+                beautifulGirls.play();
+                currentMusic = beautifulGirls;
+            }
+            if('hideway' == musicName){
+                hideway.currentTime = 0;
+                hideway.play();
+                currentMusic = hideway;
+            }
+            if('milionere' == musicName){
+                milionere.currentTime = 0;
+                milionere.play();
+                currentMusic = milionere;
+            }
+            if('wisniewskiMusic' == musicName){
+                wisniewskiMusic.currentTime = 0;
+                wisniewskiMusic.play();
+                currentMusic = wisniewskiMusic;
+            }
+            if('menAtWork' == musicName){
+                menAtWork.currentTime = 0;
+                menAtWork.play();
+                currentMusic = menAtWork;
+            }
+            if('HotnCold' == musicName){
+                HotnCold.currentTime = 0;
+                HotnCold.play();
+                currentMusic = HotnCold;
+            }
+        });
+
+        socket.on('stopMusic', ()=>{
+            if(currentMusic){
+                currentMusic.pause();
+            }
+        })
 
         socket.on('showSection', (section)=>{
             let game = document.querySelector('#game');
@@ -93,7 +176,7 @@
                 categoriesHTML += `<div class="col"><p>${set.name}</p></div>`;
                 questionsHTML += '<div class="col">';
                 for(let question of set.questions){
-                    questionsHTML += `<div class="questionsPoint">${question.points}</div>`
+                    questionsHTML += `<div class="questionsPoint ${question.played ? 'hide' : ''}">${question.points}</div>`
                 }
                 questionsHTML += '</div>';
             }
@@ -101,6 +184,9 @@
             main.innerHTML = questionsHTML;
 
         }
+
+        
+
         (async ()=>{
             populateQuestions(await loadData())
         })()

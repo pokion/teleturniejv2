@@ -6,6 +6,7 @@ export default class database{
         this.rawData;
         this.mapData;
         this.playerData = [];
+        this.currentQuestionID = {categoryID: 0, questionID: 0}
 
         if(fs.existsSync(this.path)){
             fs.readFile(this.path, 'utf8', (err, data)=>{
@@ -38,6 +39,8 @@ export default class database{
     }
 
     getQuestion(categoryID, questionID){
+        this.currentQuestionID.categoryID = categoryID;
+        this.currentQuestionID.questionID = questionID;
         return this.mapData.get(categoryID).questionsMap.get(questionID);
     }
 
@@ -46,9 +49,25 @@ export default class database{
     }
 
     savePlayers(playersData){
+        console.log(playersData)
         fs.writeFile(import.meta.dirname + '/players.json', JSON.stringify(playersData), function(err){
             console.log(err)
         })
+    }
+
+    questionPlayed(){
+        for(let category of this.rawData){
+            if(category.id == this.currentQuestionID.categoryID){
+                for(let question of category.questions){
+                    if(question.id == this.currentQuestionID.questionID){
+                        question.played = true;
+                        break;
+                    }
+                }
+            }
+        }
+        this.saveData(this.rawData);
+        return this.rawData;
     }
 
     getPlayersData(){
