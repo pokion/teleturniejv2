@@ -1,25 +1,21 @@
 import express from 'express';
+import bodyParser from 'body-parser';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import socketConnections from './socketConnections.js';
+import routing from './routing.js';
+import Database from './database.js';
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {});
+const DB = new Database(import.meta.dirname + '/questions.json');
 app.use(express.static('public'));
+app.use(bodyParser.json({limit: '10mb'}));
+
+routing(app, DB)
+
+socketConnections(io, DB);
 
 
-app.get('/panel', (req,res)=>{
-    res.sendFile('panel.html', {root: import.meta.dirname})
-})
-
-app.get('/board', (req,res)=>{
-    res.sendFile('leaderboard.html', {root: import.meta.dirname})
-})
-
-app.get('/game', (req,res)=>{
-    res.sendFile('game.html', {root: import.meta.dirname})
-})
-
-app.get('/adminPhone', (req,res)=>{
-    res.sendFile('adminPhone.html', {root: import.meta.dirname})
-})
-
-app.listen(8080, ()=>{
-    console.log('Server is running.')
-})
+httpServer.listen(8080);

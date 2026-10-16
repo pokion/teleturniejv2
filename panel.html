@@ -267,6 +267,21 @@
     padding:0;
     font-size:13px;
   }
+  .answers-box{margin-bottom:14px;}
+  .answers-box > label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
+  .answer-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .answer-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);flex-shrink:0;cursor:pointer;}
+  .answer-hint{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .q-answers{margin-top:6px;font-size:12px;color:var(--text-dim);}
+  .q-answers .ok{color:var(--gold);font-weight:600;}
+  .json-bar{display:flex;gap:10px;margin-bottom:16px;}
+  .sync-status{font-size:12px;color:var(--text-dim);margin-bottom:8px;min-height:16px;}
+  .sync-status.err{color:var(--red);}
+  .json-preview{
+    width:100%;min-height:180px;background:var(--bg);color:var(--text-dim);
+    border:1px solid var(--line);border-radius:8px;padding:10px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;resize:vertical;
+  }
   @media (max-width: 860px){
     .layout{flex-direction:column;}
     .left, .right{width:100%;border-right:none;}
@@ -311,9 +326,8 @@
           <label for="qType">Typ pytania</label>
           <select id="qType">
             <option value="jednokrotny">Jednokrotnego wyboru</option>
-            <option value="wielokrotny">Wielokrotnego wyboru</option>
-            <option value="otwarte">Otwarte</option>
-            <option value="prawda-falsz">Prawda / fałsz</option>
+            <option value="pixelated">Pixelated</option>
+            <option value="muzyczne">Muzyczne</option>
           </select>
         </div>
       </div>
@@ -333,6 +347,12 @@
         </div>
       </div>
 
+      <div class="answers-box" id="answersBox">
+        <label>Odpowiedzi (zaznacz poprawną)</label>
+        <div id="answerRows"></div>
+        <div class="answer-hint" id="answerHint"></div>
+      </div>
+
       <div class="form-actions">
         <button class="btn-gold" onclick="saveQuestion()" id="saveBtn">Dodaj pytanie</button>
       </div>
@@ -343,6 +363,15 @@
   <div class="right">
     <h2 style="margin-bottom:16px;">Lista pytań</h2>
     <div id="questionList"></div>
+
+    <h2 style="margin:28px 0 12px;">Dane (JSON)</h2>
+    <div class="json-bar">
+      <button class="btn-primary" onclick="downloadJson()">Pobierz JSON</button>
+      <button class="btn-ghost" onclick="document.getElementById('jsonFile').click()">Wczytaj JSON</button>
+      <input type="file" id="jsonFile" accept="application/json,.json" style="display:none" onchange="handleJsonFile(this)">
+    </div>
+    <div class="sync-status" id="syncStatus"></div>
+    <textarea class="json-preview" id="jsonPreview" readonly></textarea>
   </div>
 
 </div>
@@ -353,13 +382,15 @@ let questions = [];
 let categoryIdCounter = 1;
 let questionIdCounter = 1;
 let editingQuestionId = null;
-let pendingMediaName = null;
+const ANSWER_COUNT = 4;
+const UPLOAD_URL = '/files'; // ENDPOINT DO WYSYŁANIA PLIKÓW
+const DATA_URL = '/data';    // ENDPOINT GET (pobranie) i POST (zapis) CAŁEGO JSON-a
+let pendingMediaFile = null;
 
 const typeLabels = {
   'jednokrotny': 'Jednokrotnego wyboru',
-  'wielokrotny': 'Wielokrotnego wyboru',
-  'otwarte': 'Otwarte',
-  'prawda-falsz': 'Prawda / fałsz'
+  'pixelated': 'Pixelated',
+  'muzyczne': 'Muzyczne'
 };
 
 function addCategory(){
@@ -371,6 +402,7 @@ function addCategory(){
   renderCategories();
   renderCategorySelect();
   renderQuestions();
+  syncData();
 }
 
 function renameCategory(id){
@@ -382,6 +414,7 @@ function renameCategory(id){
     renderCategories();
     renderCategorySelect();
     renderQuestions();
+    syncData();
   }
 }
 
@@ -393,6 +426,7 @@ function deleteCategory(id){
   renderCategories();
   renderCategorySelect();
   renderQuestions();
+  syncData();
 }
 
 function renderCategories(){
@@ -424,13 +458,13 @@ function renderCategorySelect(){
 
 function handleMediaChange(input){
   const file = input.files[0];
-  pendingMediaName = file ? file.name : null;
-  document.getElementById('mediaTag').innerHTML = pendingMediaName
-    ? `<span class="media-tag">🎵🖼 ${escapeHtml(pendingMediaName)}</span>`
+  pendingMediaFile = file || null;
+  document.getElementById('mediaTag').innerHTML = file
+    ? `<span class="media-tag">🎵🖼 ${escapeHtml(file.name)}</span>`
     : '';
 }
 
-function saveQuestion(){
+async function saveQuestion(){
   const name = document.getElementById('qName').value.trim();
   const categoryId = Number(document.getElementById('qCategory').value);
   const type = document.getElementById('qType').value;
@@ -439,23 +473,52 @@ function saveQuestion(){
   if(!name){ alert('Podaj treść pytania.'); return; }
   if(!categoryId){ alert('Wybierz lub dodaj najpierw kategorię.'); return; }
 
+  const answers = readAnswers();
+  if(hasAnswers(type)){
+    const filled = answers.filter(a => a.text);
+    if(filled.length < 2){ alert('Wpisz co najmniej 2 odpowiedzi.'); return; }
+    if(!filled.some(a => a.correct)){ alert('Zaznacz co najmniej jedną poprawną odpowiedź.'); return; }
+  }
+
+  let uploadedName = null;
+  if(pendingMediaFile){
+    const saveBtn = document.getElementById('saveBtn');
+    const oldLabel = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Wysyłanie pliku...';
+    try {
+      uploadedName = await uploadFile(pendingMediaFile);
+    } catch(e){
+      alert('Nie udało się wysłać pliku na serwer: ' + e.message);
+      saveBtn.disabled = false;
+      saveBtn.textContent = oldLabel;
+      return;
+    }
+    saveBtn.disabled = false;
+    saveBtn.textContent = oldLabel;
+  }
+
   if(editingQuestionId){
     const q = questions.find(q => q.id === editingQuestionId);
     q.name = name;
     q.categoryId = categoryId;
     q.type = type;
     q.points = points;
-    if(pendingMediaName) q.media = pendingMediaName;
+    q.answers = hasAnswers(type) ? answers : [];  // played zostaje bez zmian przy edycji
+    if(uploadedName) q.media = uploadedName;
     cancelEdit();
   } else {
     questions.push({
       id: questionIdCounter++,
       name, categoryId, type, points,
-      media: pendingMediaName
+      answers: hasAnswers(type) ? answers : [],
+      media: uploadedName,
+      played: false
     });
     resetForm();
   }
   renderQuestions();
+  syncData();
 }
 
 function resetForm(){
@@ -463,7 +526,8 @@ function resetForm(){
   document.getElementById('qPoints').value = '';
   document.getElementById('qMedia').value = '';
   document.getElementById('mediaTag').innerHTML = '';
-  pendingMediaName = null;
+  pendingMediaFile = null;
+  renderAnswerRows();
 }
 
 function editQuestion(id){
@@ -474,7 +538,9 @@ function editQuestion(id){
   document.getElementById('qCategory').value = q.categoryId;
   document.getElementById('qType').value = q.type;
   document.getElementById('qPoints').value = q.points;
-  pendingMediaName = null;
+  renderAnswerRows(q.answers);
+  pendingMediaFile = null;
+  document.getElementById('qMedia').value = '';
   document.getElementById('mediaTag').innerHTML = q.media
     ? `<span class="media-tag">Obecny plik: ${escapeHtml(q.media)}</span>` : '';
   document.getElementById('formTitle').textContent = 'Edytuj pytanie';
@@ -504,12 +570,14 @@ function deleteQuestion(id){
   questions = questions.filter(q => q.id !== id);
   if(editingQuestionId === id) cancelEdit();
   renderQuestions();
+  syncData();
 }
 
 function renderQuestions(){
   const container = document.getElementById('questionList');
   if(categories.length === 0){
     container.innerHTML = '<div class="empty-state">Dodaj kategorię i pytanie, aby zobaczyć tu listę.</div>';
+    updateJsonPreview();
     return;
   }
 
@@ -537,6 +605,7 @@ function renderQuestions(){
                 <span>${typeLabels[q.type] || q.type}</span>
                 ${q.media ? `<span>📎 ${escapeHtml(q.media)}</span>` : ''}
               </div>
+              ${(q.answers && q.answers.length) ? `<div class="q-answers">${q.answers.filter(a => a.text).map(a => a.correct ? `<span class="ok">✓ ${escapeHtml(a.text)}</span>` : escapeHtml(a.text)).join(' &nbsp;|&nbsp; ')}</div>` : ''}
             </div>
             <div class="q-actions">
               <button class="btn-ghost" onclick="editQuestion(${q.id})">Edytuj</button>
@@ -549,6 +618,215 @@ function renderQuestions(){
   });
 
   container.innerHTML = html || '<div class="empty-state">Brak pytań — dodaj pierwsze w formularzu po lewej.</div>';
+  updateJsonPreview();
+}
+
+// ---------- WYSYŁANIE PLIKÓW ----------
+function randomFileName(originalName){
+  const dot = originalName.lastIndexOf('.');
+  const ext = dot > -1 ? originalName.slice(dot).toLowerCase() : '';
+  const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+  return id + ext;
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]); // sam base64, bez prefiksu data:
+    reader.onerror = () => reject(new Error('Nie można odczytać pliku'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// Wysyła plik POST-em na UPLOAD_URL jako JSON: { "name": "<losowa-nazwa>", "value": "<base64>" }
+async function uploadFile(file){
+  const name = randomFileName(file.name);
+  const value = await fileToBase64(file);
+  const res = await fetch(UPLOAD_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, value })
+  });
+  if(!res.ok) throw new Error('serwer zwrócił ' + res.status);
+  return name;
+}
+
+// ---------- ODPOWIEDZI ----------
+function hasAnswers(type){
+  return ['jednokrotny', 'pixelated', 'muzyczne'].includes(type);
+}
+
+function renderAnswerRows(answers){
+  const rows = document.getElementById('answerRows');
+  const type = document.getElementById('qType').value;
+  const box = document.getElementById('answersBox');
+  box.style.display = hasAnswers(type) ? 'block' : 'none';
+  document.getElementById('answerHint').textContent =
+    'Tylko jedna odpowiedź może być poprawna.';
+  let html = '';
+  for(let i = 0; i < ANSWER_COUNT; i++){
+    const a = (answers && answers[i]) || {text:'', correct:false};
+    html += `
+      <div class="answer-row">
+        <input type="checkbox" class="ans-correct" ${a.correct ? 'checked' : ''} onchange="onCorrectChange(${i})" title="Poprawna odpowiedź">
+        <input type="text" class="ans-text" placeholder="Odpowiedź ${i + 1}" value="${escapeHtml(a.text).replace(/"/g,'&quot;')}">
+      </div>`;
+  }
+  rows.innerHTML = html;
+}
+
+function onCorrectChange(index){
+  const boxes = document.querySelectorAll('.ans-correct');
+  boxes.forEach((b, i) => { if(i !== index) b.checked = false; });
+}
+
+function readAnswers(){
+  const texts = document.querySelectorAll('.ans-text');
+  const checks = document.querySelectorAll('.ans-correct');
+  const out = [];
+  texts.forEach((t, i) => out.push({ text: t.value.trim(), correct: checks[i].checked }));
+  return out;
+}
+
+document.getElementById('qType').addEventListener('change', () => {
+  const current = readAnswers();
+  let seen = false;
+  current.forEach(a => { if(a.correct){ if(seen) a.correct = false; seen = true; } });
+  renderAnswerRows(current);
+});
+
+// ---------- JSON ----------
+// Struktura: tablica kategorii, każda z tablicą swoich pytań.
+function getPanelData(){
+  return categories.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    questions: questions
+      .filter(q => q.categoryId === cat.id)
+      .sort((a, b) => b.points - a.points)
+      .map(q => ({
+        id: q.id,
+        name: q.name,
+        type: q.type,
+        points: q.points,
+        media: q.media || null,
+        played: !!q.played,
+        answers: q.answers || []
+      }))
+  }));
+}
+
+function setSyncStatus(text, isError){
+  const el = document.getElementById('syncStatus');
+  el.textContent = text;
+  el.className = 'sync-status' + (isError ? ' err' : '');
+}
+
+// GET /data - pobiera JSON z pytaniami i przekazuje go do loadData()
+async function fetchData(){
+  try {
+    const res = await fetch(DATA_URL);
+    if(!res.ok) throw new Error('serwer zwrócił ' + res.status);
+    const data = await res.json();
+    loadData(data);
+    setSyncStatus('Dane pobrane z serwera.', false);
+  } catch(e){
+    console.error('Błąd pobierania danych:', e);
+    setSyncStatus('Nie udało się pobrać danych z serwera (' + e.message + ').', true);
+  }
+}
+
+// POST /data - wysyła cały JSON (wszystkie kategorie z pytaniami)
+async function syncData(){
+  try {
+    const res = await fetch(DATA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(getPanelData())
+    });
+    if(!res.ok) throw new Error('serwer zwrócił ' + res.status);
+    setSyncStatus('Zapisano na serwerze.', false);
+  } catch(e){
+    console.error('Błąd zapisu danych:', e);
+    setSyncStatus('Nie udało się zapisać na serwerze (' + e.message + ').', true);
+  }
+}
+
+function updateJsonPreview(){
+  document.getElementById('jsonPreview').value = JSON.stringify(getPanelData(), null, 2);
+}
+
+function downloadJson(){
+  const blob = new Blob([JSON.stringify(getPanelData(), null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'quiz.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function handleJsonFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { loadData(JSON.parse(reader.result)); }
+    catch(e){ alert('Nieprawidłowy plik JSON.'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// Wczytuje JSON (tablica kategorii z pytaniami) do panelu.
+// Nie wywołuje syncData(), żeby nie odsyłać na serwer tego, co dopiero z niego przyszło.
+function loadData(data){
+  if(!Array.isArray(data)) throw new Error('Oczekiwano tablicy kategorii');
+
+  const newCategories = [];
+  const newQuestions = [];
+  const usedCatIds = new Set();
+  const usedQIds = new Set();
+  let nextCatId = 1;
+  let nextQId = 1;
+
+  data.forEach(cat => {
+    let catId = Number(cat.id);
+    if(!catId || usedCatIds.has(catId)){
+      while(usedCatIds.has(nextCatId)) nextCatId++;
+      catId = nextCatId;
+    }
+    usedCatIds.add(catId);
+    newCategories.push({ id: catId, name: String(cat.name || 'Bez nazwy') });
+
+    (cat.questions || []).forEach(q => {
+      let qId = Number(q.id);
+      if(!qId || usedQIds.has(qId)){
+        while(usedQIds.has(nextQId)) nextQId++;
+        qId = nextQId;
+      }
+      usedQIds.add(qId);
+      newQuestions.push({
+        id: qId,
+        name: String(q.name || ''),
+        categoryId: catId,
+        type: q.type || 'jednokrotny',
+        points: Number(q.points) || 0,
+        media: q.media || null,
+        played: !!q.played,
+        answers: Array.isArray(q.answers) ? q.answers.map(a => ({ text: String(a.text || ''), correct: !!a.correct })) : []
+      });
+    });
+  });
+
+  categories = newCategories;
+  questions = newQuestions;
+  categoryIdCounter = Math.max(0, ...usedCatIds) + 1;
+  questionIdCounter = Math.max(0, ...usedQIds) + 1;
+
+  cancelEdit();
+  renderCategories();
+  renderCategorySelect();
+  renderQuestions();
 }
 
 function escapeHtml(str){
@@ -563,7 +841,9 @@ document.getElementById('catInput').addEventListener('keydown', e => {
 
 renderCategories();
 renderCategorySelect();
+renderAnswerRows();
 renderQuestions();
+fetchData(); // przy starcie pobiera dane z GET /data
 </script>
 
 </body>

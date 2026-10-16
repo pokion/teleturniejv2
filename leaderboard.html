@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teleturniej</title>
+    <title>board</title>
     <link rel="stylesheet" href="./bootstrap.min.css" />
     <link rel="stylesheet" href="./main.css" />
     <style>
@@ -67,6 +67,10 @@
         .capsule > .image{
             margin-left: -3px;
         }
+        .image{
+            background-position: center;
+            background-size: cover;
+        }
     </style>
     
 </head>
@@ -76,67 +80,84 @@
             <div class="step second">
                 <div class="image"></div>
                 <div class="box">
-                    <p>Patrycja</p>
-                    <p>2500</p>
+                    <p class="name">Patrycja</p>
+                    <p class="points">2500</p>
                 </div>
             </div>
             <div class="step first">
                 <div class="image"></div>
                 <div class="box">
-                    <p>Czarek</p>
-                    <p>2500</p>
+                    <p class="name">Czarek</p>
+                    <p class="points">2500</p>
                 </div>
             </div>
             <div class="step third">
                 <div class="image"></div>
                 <div class="box">
-                    <p>Ania</p>
-                    <p>2500</p>
+                    <p class="name">Ania</p>
+                    <p class="points">2500</p>
                 </div>
             </div>
         </div>
 
         <br/>
 
-        <div class="row">
-            <div class="col-4">
+        <div class="row" id="otherPlayers">
+
+            <!-- <div class="col-4">
                 <div class="capsule">
                     <div class="image"></div>
                     <p>Patryk</p>
                     <p>300</p>
                 </div>
-            </div>
-            <div class="col-4">
-                <div class="capsule">
-                    <div class="image"></div>
-                    <p>Patryk</p>
-                    <p>300</p>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="capsule">
-                    <div class="image"></div>
-                    <p>Patryk</p>
-                    <p>300</p>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="capsule">
-                    <div class="image"></div>
-                    <p>Patryk</p>
-                    <p>300</p>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="capsule">
-                    <div class="image"></div>
-                    <p>Patryk</p>
-                    <p>300</p>
-                </div>
-            </div>
+            </div> -->
+
         </div>
     </div>
 
     <script src="./bootstrap.min.js"></script>
+    <script src="./socketIO.min.js"></script>
+    <script>
+        const socket = io();
+        let sortedPlayers;
+
+        socket.emit('getAllPlayers');
+
+        socket.on('allPlayers', (players)=>{
+            sortedPlayers = players.sort((a, b) => b.points - a.points);
+            populateLeader(sortedPlayers)
+        })
+
+        function populateLeader(players){
+            let otherPlayers = ``;
+            for(let i=0; i<players.length; i++){
+                if(i==0){
+                    document.querySelector('.first>.box>.name').innerHTML = players[i].name;
+                    document.querySelector('.first>.box>.points').innerHTML = players[i].points;
+                    document.querySelector('.first>.image').style.backgroundImage = `url('./${players[i].image}')`;
+                }
+                if(i==1){
+                    document.querySelector('.second>.box>.name').innerHTML = players[i].name;
+                    document.querySelector('.second>.box>.points').innerHTML = players[i].points;
+                    document.querySelector('.second>.image').style.backgroundImage = `url('./${players[i].image}')`;
+                }
+                if(i==2){
+                    document.querySelector('.third>.box>.name').innerHTML = players[i].name;
+                    document.querySelector('.third>.box>.points').innerHTML = players[i].points;
+                    document.querySelector('.third>.image').style.backgroundImage = `url('./${players[i].image}')`;
+                }else if(i>2){
+                    otherPlayers += `<div class="col-4">
+                                        <div class="capsule">
+                                            <div class="image" style="background-image: url('./${players[i].image}')"></div>
+                                            <p>${players[i].name}</p>
+                                            <p>${players[i].points}</p>
+                                        </div>
+                                    </div>`
+                }
+                document.querySelector('#otherPlayers').innerHTML = otherPlayers
+                
+            }
+        }
+    </script>
 </body>
 </html>

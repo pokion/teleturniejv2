@@ -12,20 +12,204 @@
             font-size: 1.5rem;
             color: var(--accent-color);
             height: 100vh;
-            font-family: main;
+            font-family: Arial, Helvetica, sans-serif;
             color: var(--main-color);
             font-size: 2rem;
             text-align: center;
             text-transform: uppercase;
+        }
+        .avatar{
+            border-radius: 100%;
+            width: 100px;
+            height: 100px;
+            background-color: blueviolet;
+            margin: 5px;
+            background-size: cover;
+            background-position: center;
+        }
+        #answers{
+            font-size: 1.2rem;
         }
     </style>
     
 </head>
 <body>
     <div class="container">
+        <div class="row">
+            <div class="col">
+                <button type="button" class="btn btn-secondary" onclick="showProperPage('gracze')">Gracze</button>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-secondary" onclick="showProperPage('pytania')">Pytania</button>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-secondary" onclick="showProperPage('aktualnePytanie')">Wybrane pytanie</button>
+            </div>
+        </div>
+        <div class="row hide" id="gracze">
+        </div>
+
+
+        <div class="row hide" id="pytania">
+            <div class="accordion accordion-flush" id="accordionQuestions">
+                
+                    
+           
+                        
+
+            </div>
+
+            <div class="col-12">
+                <button type="button" class="btn btn-primary" onclick="nextPlayer()">Następny Gracz</button>
+                <button type="button" class="btn btn-primary" onclick="showSection('board')">Show leaderBoard</button>
+                <button type="button" class="btn btn-primary" onclick="showSection('game')">Show game</button>
+                <button type="button" class="btn btn-primary" onclick="showSection('question')">Show question</button>
+            </div>
+        </div>
+
+        <div id="aktualnePytanie">
+            <div class="row" >
+                <div class="col"><p id="question">test</p></div>
+            </div>
+            <div class="row" id="answers">
+                <div class="col-12">test</div>
+                <div class="col-12">test</div>
+                <div class="col-12">test</div>
+                <div class="col-12">test</div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p>Points <span id="points"></span></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col"><p>Current player</p></div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p id="currentPlayerName">
+                        Gracz nie został wybrany
+                    </p>
+                    <p id="currentPlayerPoints">Punkty</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12"><input type="number" class="form-control" id="pointsToAdd"></div>
+                <br>
+                <div class="col-12"><button type="button" class="btn btn-primary" onclick="addPointsToPlayer(1)">Dodaj punkty</button></div>
+                <br>
+                <div class="col-12"><button type="button" class="btn btn-primary" onclick="addPointsToPlayer(2)">Dodaj połowę punktów</button></div>
+
+                <div class="col-12"><button type="button" class="btn btn-danger" onclick="addPointsToPlayer(-1)">Odejmij punkty</button></div>
+
+                <div class="col-12"><button type="button" class="btn btn-danger" onclick="addPointsToPlayer(-2)">Odejmij połowę punkty</button></div>
+            </div>
+        </div>
 
     </div>
 
     <script src="./bootstrap.min.js"></script>
+    <script src="./main.js"></script>
+    <script src="./socketIO.min.js"></script>
+    <script>
+        let currentPage = 'aktualnePytanie';
+        let dataQuestions
+        let currentQuestion;
+        let playersData;
+        let currentPerson;
+        const socket = io();
+
+        function showSection(section){
+            socket.emit('showSection', section)
+        }
+
+        function populateCurrentQuestion(question){
+            document.querySelector('#question').innerHTML = question.name;
+            document.querySelector('#points').innerHTML = question.points;
+            document.querySelector('#pointsToAdd').value = question.points;
+            let child = 0;
+            for(let answer of question.answers){
+                document.querySelectorAll('#answers>div')[child].innerHTML = answer.text + ' | ' + answer.correct;
+                child++
+            }
+        }
+
+        function addPointsToPlayer(divider){
+            if(!currentPerson){
+                alert('musisz wybrać gracza');
+                return;
+            }
+            socket.emit('addPlayerPoints', currentPerson.id, (Number(document.querySelector('#pointsToAdd').value) / divider))
+        }
+
+        socket.on('currentQuestion', (data)=>{
+            populateCurrentQuestion(data)
+        })
+
+        function nextPlayer(){
+            socket.emit('nextPlayer');
+        }
+
+        socket.on('currentPlayer', (player)=>{
+            currentPerson = player;
+            document.querySelector('#currentPlayerName').innerHTML = player.name;
+            document.querySelector('#currentPlayerPoints').innerHTML = player.points;
+        })
+
+        socket.emit('getAllPlayers');
+
+        socket.on('allPlayers', (players)=>{
+            console.log('allPLayers')
+            playersData = players;
+            document.querySelector('#gracze').innerHTML = '';
+            console.log(players)
+
+            for(let player of players){
+                document.querySelector('#gracze').innerHTML += `
+                    <div class="col"><div class="avatar" style="background-image: url('./${player.image}')" onclick="selectPlayer('${player.id}')"></div></div>`
+            }
+        })
+
+        function selectPlayer(id){
+            socket.emit('selectPlayer', id)
+        }
+
+        function showProperPage(id){
+            document.querySelector('#' + currentPage).classList.toggle('hide');
+            document.querySelector('#' + id).classList.toggle('hide');
+            currentPage = id;
+        }
+        function appendToAcordion(data){
+            let accordion = ''
+            for(let categorie of data){
+                accordion += `
+                    <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${categorie.name.replaceAll(' ','_')}" aria-expanded="false" aria-controls="${categorie.name}">
+                            ${categorie.name}
+                        </button>
+                    </h2>
+                    <div id="${categorie.name.replaceAll(' ','_')}" class="accordion-collapse collapse" data-bs-parent="#accordionQuestions">
+                        <div class="accordion-body">
+                `;
+                for(let question of categorie.questions){
+                    accordion += `<button type="button" class="btn btn-primary" onclick="setCurrentQuestion(${question.id},${categorie.id})">${question.points}</button> `
+                }
+                accordion += `</div>
+                    </div>
+                </div>`
+            }
+            document.querySelector('#accordionQuestions').innerHTML = accordion;
+        }
+
+        function setCurrentQuestion(questionID, categoryID){
+            socket.emit('changeQuestion', {questionID, categoryID})
+        }
+
+        (async ()=>{
+            dataQuestions = await loadData()
+            appendToAcordion(dataQuestions)
+        })()
+    </script>
 </body>
 </html>

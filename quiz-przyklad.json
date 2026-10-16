@@ -1,0 +1,326 @@
+[
+  {
+    "id": 1,
+    "name": "Geografia",
+    "questions": [
+      {
+        "id": 1,
+        "name": "Jaka jest stolica Australii?",
+        "type": "jednokrotny",
+        "points": 10,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Sydney",
+            "correct": false
+          },
+          {
+            "text": "Melbourne",
+            "correct": false
+          },
+          {
+            "text": "Canberra",
+            "correct": true
+          },
+          {
+            "text": "Brisbane",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Które państwo ma największą powierzchnię na świecie?",
+        "type": "jednokrotny",
+        "points": 10,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Kanada",
+            "correct": false
+          },
+          {
+            "text": "Rosja",
+            "correct": true
+          },
+          {
+            "text": "Chiny",
+            "correct": false
+          },
+          {
+            "text": "USA",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Jak nazywa się najwyższy szczyt Polski?",
+        "type": "jednokrotny",
+        "points": 20,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Śnieżka",
+            "correct": false
+          },
+          {
+            "text": "Rysy",
+            "correct": true
+          },
+          {
+            "text": "Giewont",
+            "correct": false
+          },
+          {
+            "text": "Babia Góra",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "name": "Jaka jest stolica Kanady?",
+        "type": "jednokrotny",
+        "points": 20,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Toronto",
+            "correct": false
+          },
+          {
+            "text": "Vancouver",
+            "correct": false
+          },
+          {
+            "text": "Montreal",
+            "correct": false
+          },
+          {
+            "text": "Ottawa",
+            "correct": true
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "name": "Jaka rzeka jest najdłuższa w Europie?",
+        "type": "jednokrotny",
+        "points": 30,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Dunaj",
+            "correct": false
+          },
+          {
+            "text": "Ren",
+            "correct": false
+          },
+          {
+            "text": "Dniepr",
+            "correct": false
+          },
+          {
+            "text": "Wołga",
+            "correct": true
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "name": "Przez ile państw przepływa Dunaj?",
+        "type": "jednokrotny",
+        "points": 40,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "6",
+            "correct": false
+          },
+          {
+            "text": "8",
+            "correct": false
+          },
+          {
+            "text": "10",
+            "correct": true
+          },
+          {
+            "text": "12",
+            "correct": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Film i seriale",
+    "questions": [
+      {
+        "id": 7,
+        "name": "Kto wyreżyserował film „Pulp Fiction”?",
+        "type": "jednokrotny",
+        "points": 10,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Martin Scorsese",
+            "correct": false
+          },
+          {
+            "text": "Quentin Tarantino",
+            "correct": true
+          },
+          {
+            "text": "Steven Spielberg",
+            "correct": false
+          },
+          {
+            "text": "Christopher Nolan",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "name": "W jakim mieście rozgrywa się akcja serialu „Przyjaciele”?",
+        "type": "jednokrotny",
+        "points": 10,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Los Angeles",
+            "correct": false
+          },
+          {
+            "text": "Chicago",
+            "correct": false
+          },
+          {
+            "text": "Boston",
+            "correct": false
+          },
+          {
+            "text": "Nowy Jork",
+            "correct": true
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "name": "Jaki kolor pigułki wybiera Neo w „Matrixie”, by poznać prawdę?",
+        "type": "jednokrotny",
+        "points": 20,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Czerwoną",
+            "correct": true
+          },
+          {
+            "text": "Niebieską",
+            "correct": false
+          },
+          {
+            "text": "Zieloną",
+            "correct": false
+          },
+          {
+            "text": "Białą",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "name": "Kto zagrał Jokera w filmie „Mroczny Rycerz” z 2008 roku?",
+        "type": "jednokrotny",
+        "points": 30,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Joaquin Phoenix",
+            "correct": false
+          },
+          {
+            "text": "Jack Nicholson",
+            "correct": false
+          },
+          {
+            "text": "Heath Ledger",
+            "correct": true
+          },
+          {
+            "text": "Jared Leto",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "name": "Który film Jamesa Camerona zdobył 11 Oscarów?",
+        "type": "jednokrotny",
+        "points": 30,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Avatar",
+            "correct": false
+          },
+          {
+            "text": "Titanic",
+            "correct": true
+          },
+          {
+            "text": "Terminator 2",
+            "correct": false
+          },
+          {
+            "text": "Obcy – decydujące starcie",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "name": "Z jakiego kraju pochodzi serial „Dom z papieru”?",
+        "type": "jednokrotny",
+        "points": 40,
+        "media": null,
+        "played": false,
+        "answers": [
+          {
+            "text": "Włochy",
+            "correct": false
+          },
+          {
+            "text": "Meksyk",
+            "correct": false
+          },
+          {
+            "text": "Argentyna",
+            "correct": false
+          },
+          {
+            "text": "Hiszpania",
+            "correct": true
+          }
+        ]
+      }
+    ]
+  }
+]

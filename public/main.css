@@ -15,3 +15,6 @@
     --secondary-color: #f89070;
     --accent-color: #f8e0a0;
 }
+.hide{
+    display: none;
+}

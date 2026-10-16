@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player create</title>
+    <link rel="stylesheet" href="./bootstrap.min.css" />
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+        body{
+            background-color: var(--secondary-color);
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            height: 100vh;
+            font-family: main;
+            color: var(--main-color);
+            font-size: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .image{
+            height: 200px;
+            width: 200px;
+            background-image: url('./emptyPhoto.png');
+            background-size: cover;
+            border-radius: 100%;
+            padding: 0;
+            overflow: hidden;
+            background-position: center;
+        }
+        .imageCover{
+            height: 200px;
+            width: 200px;
+            font-size: 50px;
+            display: block;
+            line-height: 200px;
+            color: rgb(54, 54, 54);
+            font-family: 'Courier New', Courier, monospace;
+            background-color: rgba(60, 60, 60, 0.349);
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+       
+            <div class="row" style="justify-content: center;">
+                <div class="image" onclick="document.querySelector('#inputImage').click()"><span class="imageCover">+</span></div>
+                <input id="inputImage" type="file" name="image" accept="image/*;capture=camera" class="hide" onchange="changeImage(this)">
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="text" id="name" class="form-control" name="name" placeholder="Nazwa">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary" onclick="submitCreatePlayer()">Dodaj gracza</button>
+                </div>
+            </div>
+    </div>
+
+    <script src="./bootstrap.min.js"></script>
+    <script src="./main.js"></script>
+    <script src="./socketIO.min.js"></script>
+    <script>
+        const socket = io();
+        let image;
+
+        async function changeImage(input){
+            console.log(input.files)
+            image = await fileToBase64(input.files[0]);
+            document.querySelector('.image').style.backgroundImage = 'url("'+image+'")';
+            document.querySelector('.image>span').classList.add('hide');
+            document.querySelector('.image>span').classList.remove('imageCover');
+        }
+
+        function submitCreatePlayer(){
+            socket.emit('createPlayer', { image: image, name: document.querySelector("#name").value});
+            alert('JEST DOBRZE')
+        }
+
+    </script>
+</body>
+</html>

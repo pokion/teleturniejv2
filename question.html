@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>question</title>
+    <link rel="stylesheet" href="./bootstrap.min.css" />
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+        body{
+            background-color: var(--secondary-color);
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            height: 100vh;
+            font-family: main;
+            color: var(--main-color);
+            font-size: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .main{
+            padding: 50px;
+        }
+        .image{
+            width: 70vw;
+            height: 50vh;
+            background-color: black;
+            margin-left: calc(50% - 35vw);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .answer{
+            background-color: var(--main-color);
+            border: solid var(--accent-color) 3px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            border-radius: 100px;
+            height: 89px;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            justify-content: center;
+        }
+        #question{
+            margin-top: 16px;
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="main">
+        <div class="image"></div>
+        <div class="row">
+            <div class="col">
+                <p id="question">PYTANIE</p>
+            </div>
+        </div>
+        <div class="answers row">
+            <div class="col-1"></div>
+            <div class="answer col-4"> pytamoi</div>
+            <div class="col-2"></div>
+            <div class="answer col-4">pytanie</div>
+            <div class="col-1"></div>
+            <div class="col-1"></div>
+            <div class="answer col-4"> pytamoi2</div>
+            <div class="col-2"></div>
+            <div class="answer col-4">pytanie2</div>
+            <div class="col-1"></div>
+        </div>
+    </div> 
+
+
+    <script src="./bootstrap.min.js"></script>
+    <script src="./main.js"></script>
+    <script src="./socketIO.min.js"></script>
+    <script>
+        let currentQuestion;
+        let currentPerson;
+        let socket = io();
+
+        socket.emit('currentQuestion', (data)=>{
+            populateQuestion(data)
+        })
+
+        socket.on('currentQuestion', (data)=>{
+            populateQuestion(data)
+        })
+
+        function populateQuestion(data){
+            if(!data) return;
+            currentQuestion = data;
+            let dviQuestion = document.querySelectorAll('.answer');
+            document.querySelector('.image').style.backgroundImage = `url(./${data.media})`;
+            document.querySelector('#question').innerHTML = data.name
+            for(let i=0; i<data.answers.length; i++){
+                dviQuestion[i].classList.remove('hide')
+                dviQuestion[i].innerHTML = data.answers[i].text;
+                dviQuestion[i].dataset.isCorrect = data.answers[i].correct
+            }
+        }
+
+    </script>
+</body>
+</html>
